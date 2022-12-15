@@ -1,3 +1,6 @@
+# References
+- JIRA
+
 # Summary
 - Short explanation of the changes
 
@@ -12,5 +15,4 @@
 - [ ] Deployment plan
 - [ ] Performance results (if applicable)
 
-# References
-- [Link to JIRA card](https://homelyau.atlassian.net/browse/??-???)
+
