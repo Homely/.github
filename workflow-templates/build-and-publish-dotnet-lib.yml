@@ -1,0 +1,64 @@
+name: Build & Publish .NET Library
+
+on:
+  push:
+    branches: [ $default-branch ]
+    paths-ignore:
+      - 'README.md'
+  pull_request:
+    paths-ignore:
+      - 'README.md'
+
+env:
+  DOTNET_NOLOGO: true
+
+jobs:
+  debug-build:
+    name: 'Build (Debug)'
+    runs-on: ubuntu-latest
+    steps:              
+        - name: Checkout repo
+          uses: actions/checkout@v4
+      
+        - name: Setup .NET
+          uses: actions/setup-dotnet@v4
+    
+        - name: Test
+          run: dotnet build --configuration Debug --verbosity minimal
+
+  release-build-and-publish:
+      name: 'Build & Publish (Release)'
+      runs-on: ubuntu-latest
+      steps:              
+          - name: Checkout repo
+            uses: actions/checkout@v4
+    
+          - name: Build version prefix/suffix
+            run: |
+              echo "VERSION_PREFIX=$(( 100 + ${{ github.run_number }} )).0.0" >> $GITHUB_ENV
+              echo "VERSION_SUFFIX=alpha" >> $GITHUB_ENV
+        
+          - name: Setup .NET
+            uses: actions/setup-dotnet@v4
+            
+          - run: dotnet pack --configuration Release --output ./artifacts -p:DebugType=Embedded -p:VersionPrefix=$VERSION_PREFIX --version-suffix $VERSION_SUFFIX
+    
+          - name: Publish artifacts
+            uses: actions/upload-artifact@v4
+            with:
+              path: ./artifacts/*
+    
+  publish-to-nuget:
+      needs: [debug-build, release-build-and-publish]
+      if: ${{ github.event_name == 'push' }}
+      name: 'Push to NuGet'
+      runs-on: ubuntu-latest
+      steps:
+           - name: Download artifacts
+             uses: actions/download-artifact@v4
+             
+           - name: Publish to MyGet.org
+             run: |
+              dotnet nuget push "./artifact/*.nupkg" \
+              --api-key ${{ secrets.MYGET_TOKEN }} \
+              --source https://www.myget.org/F/homely-dev/api/v2/package
