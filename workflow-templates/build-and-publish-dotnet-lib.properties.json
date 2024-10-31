@@ -1,7 +1,0 @@
-{
-    "name": "Build & Publish a .NET NuGet Library",
-    "description": "Use this to build a .NET library, which then gets pushed to MyGet on merge.",
-    "categories": [
-        "continuous-integration", "deployment", "c#", 
-    ]
-}
